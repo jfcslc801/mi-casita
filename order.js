@@ -10,7 +10,6 @@ const container = document.querySelector(".menu-container");
 const totalCostEl = document.getElementById("total-cost");
 let totalCost = 0;
 
-// Render each menu item
 menuItems.forEach((item, index) => {
   const div = document.createElement("div");
   div.className = "menu-item";
@@ -31,49 +30,43 @@ menuItems.forEach((item, index) => {
   container.appendChild(div);
 });
 
-// Update total on quantity change
 window.updateTotal = function () {
   totalCost = 0;
   const selects = document.querySelectorAll(".menu-item select");
-
   selects.forEach((select, index) => {
     const quantity = parseInt(select.value, 10);
     totalCost += menuItems[index].price * quantity;
   });
-
   totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
 };
 
-// Submit order and store in localStorage
 document.getElementById("order-form").addEventListener("submit", (e) => {
   e.preventDefault();
-
   const name = document.getElementById("customer-name").value.trim();
+  const phone = document.getElementById("customer-phone").value.trim();
   const selects = document.querySelectorAll(".menu-item select");
-  const items = [];
 
+  const items = [];
   selects.forEach((select, index) => {
     const quantity = parseInt(select.value, 10);
     if (quantity > 0) {
       items.push({
         name: menuItems[index].name,
-        quantity: quantity,
+        quantity,
         price: menuItems[index].price,
         image: menuItems[index].image
       });
     }
   });
 
-  if (items.length === 0) {
-    alert("Please select at least one item.");
+  if (!name || !phone || items.length === 0) {
+    alert("Please complete all fields and select at least one item.");
     return;
   }
 
-  const newOrder = { name, items, total: totalCost };
-
+  const newOrder = { name, phone, items, total: totalCost };
   const orders = JSON.parse(localStorage.getItem("orders")) || [];
   orders.push(newOrder);
   localStorage.setItem("orders", JSON.stringify(orders));
-
   window.location.href = "kitchen.html";
 });
