@@ -36,6 +36,10 @@ h1 {
   margin: 10px 0 5px;
 }
 
+.menu-item p {
+  margin: 5px 0;
+}
+
 .menu-item select {
   margin-top: 5px;
   padding: 5px;

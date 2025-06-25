@@ -11,15 +11,15 @@ const totalCostEl = document.getElementById("total-cost");
 
 let totalCost = 0;
 
-menuItems.forEach(item => {
+menuItems.forEach((item, index) => {
   const div = document.createElement("div");
   div.className = "menu-item";
   div.innerHTML = `
     <img src="\${item.image}" alt="\${item.name}">
     <h3>\${item.name}</h3>
     <p>Price: \$\${item.price.toFixed(2)}</p>
-    <label>Quantity:</label>
-    <select onchange="updateTotal()">
+    <label for="qty-\${index}">Quantity:</label>
+    <select id="qty-\${index}" onchange="updateTotal()">
       <option value="0">0</option>
       <option value="1">1</option>
       <option value="2">2</option>
@@ -45,5 +45,7 @@ function updateTotal() {
 document.getElementById("checkout-btn").addEventListener("click", () => {
   alert(`Checkout successful! Total cost: $${totalCost.toFixed(2)}`);
   totalCost = 0;
+  const selects = document.querySelectorAll(".menu-item select");
+  selects.forEach(select => select.value = "0");
   updateTotal();
 });
