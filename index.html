@@ -2,12 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>HTML + JavaScript Project</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, JavaScript!</h1>
-  <button onclick="sayHello()">Click Me</button>
+  <h1>Menu</h1>
+  <div class="menu-container">
+    <!-- Menu items will be injected here -->
+  </div>
+
+  <div class="checkout">
+    <p><strong>Total Cost:</strong> <span id="total-cost">$0.00</span></p>
+    <button id="checkout-btn">Checkout</button>
+  </div>
 
   <script src="script.js"></script>
 </body>
