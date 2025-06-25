@@ -2,11 +2,12 @@ const container = document.getElementById("kitchen-orders");
 
 function loadOrders() {
   const orders = JSON.parse(localStorage.getItem("orders")) || [];
+  const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
   container.innerHTML = "";
 
+  // Render unpaid orders
   if (orders.length === 0) {
-    container.innerHTML = "<p>No orders in queue.</p>";
-    return;
+    container.innerHTML = "<p>No unpaid orders in queue.</p>";
   }
 
   orders.forEach((order, index) => {
@@ -36,6 +37,39 @@ function loadOrders() {
 
     container.appendChild(div);
   });
+
+  // Divider for completed section
+  if (completed.length > 0) {
+    container.innerHTML += "<hr><h2>Completed Orders</h2>";
+  }
+
+  // Render completed orders
+  completed.forEach((order, index) => {
+    const div = document.createElement("div");
+    div.className = "order-card";
+
+    const itemsHtml = `
+      <table>
+        <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
+        ${order.items.map(item => `
+          <tr>
+            <td>${item.name}</td>
+            <td>${item.quantity}</td>
+            <td>$${(item.price * item.quantity).toFixed(2)}</td>
+          </tr>`).join('')}
+      </table>
+    `;
+
+    div.innerHTML = `
+      <h3>${order.name} (${order.phone})</h3>
+      <p><em>Completed: ${order.timestamp ? new Date(order.timestamp).toLocaleString() : "Unknown"}</em></p>
+      ${itemsHtml}
+      <p class="total">Total: $${order.total.toFixed(2)}</p>
+      ${order.paid ? "<p><strong>✅ Paid</strong></p>" : `<button onclick="markAsPaid(${index})">Mark as Paid</button>`}
+    `;
+
+    container.appendChild(div);
+  });
 }
 
 function completeOrder(index) {
@@ -43,23 +77,24 @@ function completeOrder(index) {
   const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
 
   const currentOrder = orders.splice(index, 1)[0];
+  currentOrder.timestamp = Date.now();
+  currentOrder.paid = false;
 
-  const existingIndex = completed.findIndex(o => o.phone === currentOrder.phone);
-  if (existingIndex !== -1) {
-    currentOrder.items.forEach(newItem => {
-      const match = completed[existingIndex].items.find(i => i.name === newItem.name);
-      if (match) {
-        match.quantity += newItem.quantity;
-      } else {
-        completed[existingIndex].items.push({ ...newItem });
-      }
-    });
-    completed[existingIndex].total += currentOrder.total;
-  } else {
-    completed.push(currentOrder);
-  }
+  // ✅ Do NOT merge — always add as a separate completed order
+  completed.push(currentOrder);
 
   localStorage.setItem("orders", JSON.stringify(orders));
+  localStorage.setItem("completedOrders", JSON.stringify(completed));
+  loadOrders();
+}
+
+function markAsPaid(index) {
+  const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
+  if (!completed[index]) return;
+
+  completed[index].paid = true;
+  completed[index].total = 0;
+
   localStorage.setItem("completedOrders", JSON.stringify(completed));
   loadOrders();
 }
