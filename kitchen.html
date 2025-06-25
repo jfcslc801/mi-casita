@@ -4,32 +4,123 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kitchen View</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f7f7f7;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .order-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 8px;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+
+    tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .total {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #e53935;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #c62828;
+    }
+  </style>
 </head>
 <body>
-  <h1>Kitchen Order View</h1>
-  <div id="kitchen-order">
-    <p>No order yet.</p>
+  <h1>Kitchen Order Queue</h1>
+  <div id="kitchen-orders">
+    <p>Loading orders...</p>
   </div>
-  <button onclick="clearOrder()">Complete Order</button>
 
   <script>
-    const order = JSON.parse(localStorage.getItem("order"));
-    const container = document.getElementById("kitchen-order");
+    const container = document.getElementById("kitchen-orders");
 
-    if (order) {
-      let html = `<h3>Customer: ${order.name}</h3><ul>`;
-      order.items.forEach(item => {
-        html += `<li>${item.quantity} x ${item.name}</li>`;
+    function loadOrders() {
+      const orders = JSON.parse(localStorage.getItem("orders")) || [];
+      container.innerHTML = "";
+
+      if (orders.length === 0) {
+        container.innerHTML = "<p>No orders in queue.</p>";
+        return;
+      }
+
+      orders.forEach((order, index) => {
+        const div = document.createElement("div");
+        div.className = "order-card";
+        
+        let itemsHtml = `
+          <table>
+            <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
+            ${order.items.map(item => `
+              <tr>
+                <td>${item.name}</td>
+                <td>${item.quantity}</td>
+                <td>$${(item.price * item.quantity).toFixed(2)}</td>
+              </tr>`).join('')}
+          </table>
+        `;
+
+        div.innerHTML = `
+          <h3>Order #${index + 1}</h3>
+          <p><strong>Customer:</strong> ${order.name}</p>
+          ${itemsHtml}
+          <p class="total">Total: $${order.total.toFixed(2)}</p>
+          <button onclick="completeOrder(${index})">Complete Order</button>
+        `;
+
+        container.appendChild(div);
       });
-      html += `</ul><p><strong>Total:</strong> $${order.total.toFixed(2)}</p>`;
-      container.innerHTML = html;
     }
 
-    function clearOrder() {
-      localStorage.removeItem("order");
-      container.innerHTML = "<p>Order completed and cleared.</p>";
+    function completeOrder(index) {
+      const orders = JSON.parse(localStorage.getItem("orders")) || [];
+      orders.splice(index, 1);
+      localStorage.setItem("orders", JSON.stringify(orders));
+      loadOrders();
     }
+
+    loadOrders();
   </script>
 </body>
 </html>
