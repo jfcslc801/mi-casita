@@ -1,4 +1,3 @@
-
 const menuItems = [
   { name: "Gorditas de Queso", image: "https://via.placeholder.com/200x140?text=Queso", price: 7.00 },
   { name: "Gorditas de Desebrada", image: "https://via.placeholder.com/200x140?text=Desebrada", price: 7.00 },
@@ -11,15 +10,16 @@ const container = document.querySelector(".menu-container");
 const totalCostEl = document.getElementById("total-cost");
 let totalCost = 0;
 
+// Render each menu item
 menuItems.forEach((item, index) => {
   const div = document.createElement("div");
   div.className = "menu-item";
   div.innerHTML = `
-    <img src="\${item.image}" alt="\${item.name}">
-    <h3>\${item.name}</h3>
-    <p>Price: \$\${item.price.toFixed(2)}</p>
-    <label for="qty-\${index}">Quantity:</label>
-    <select id="qty-\${index}" onchange="updateTotal()">
+    <img src="${item.image}" alt="${item.name}">
+    <h3>${item.name}</h3>
+    <p>Price: $${item.price.toFixed(2)}</p>
+    <label for="qty-${index}">Quantity:</label>
+    <select id="qty-${index}" onchange="updateTotal()">
       <option value="0">0</option>
       <option value="1">1</option>
       <option value="2">2</option>
@@ -31,9 +31,11 @@ menuItems.forEach((item, index) => {
   container.appendChild(div);
 });
 
-window.updateTotal = function() {
+// Update total on quantity change
+window.updateTotal = function () {
   totalCost = 0;
   const selects = document.querySelectorAll(".menu-item select");
+
   selects.forEach((select, index) => {
     const quantity = parseInt(select.value, 10);
     totalCost += menuItems[index].price * quantity;
@@ -42,8 +44,10 @@ window.updateTotal = function() {
   totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
 };
 
+// Submit order and store in localStorage
 document.getElementById("order-form").addEventListener("submit", (e) => {
   e.preventDefault();
+
   const name = document.getElementById("customer-name").value.trim();
   const selects = document.querySelectorAll(".menu-item select");
   const items = [];
@@ -51,11 +55,25 @@ document.getElementById("order-form").addEventListener("submit", (e) => {
   selects.forEach((select, index) => {
     const quantity = parseInt(select.value, 10);
     if (quantity > 0) {
-      items.push({ name: menuItems[index].name, quantity });
+      items.push({
+        name: menuItems[index].name,
+        quantity: quantity,
+        price: menuItems[index].price,
+        image: menuItems[index].image
+      });
     }
   });
 
-  const order = { name, items, total: totalCost };
-  localStorage.setItem("order", JSON.stringify(order));
+  if (items.length === 0) {
+    alert("Please select at least one item.");
+    return;
+  }
+
+  const newOrder = { name, items, total: totalCost };
+
+  const orders = JSON.parse(localStorage.getItem("orders")) || [];
+  orders.push(newOrder);
+  localStorage.setItem("orders", JSON.stringify(orders));
+
   window.location.href = "kitchen.html";
 });
