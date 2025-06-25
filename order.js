@@ -51,7 +51,7 @@ document.getElementById("order-form").addEventListener("submit", (e) => {
   selects.forEach((select, index) => {
     const quantity = parseInt(select.value, 10);
     if (quantity > 0) {
-      items.push({ name: menuItems[index].name, quantity });
+      items.push({ name: menuItems[index].name, quantity, price: menuItems[index].price });
     }
   });
 
