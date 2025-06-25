@@ -3,18 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Menu</title>
+  <title>Order Menu</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Menu</h1>
-  <div class="menu-container"></div>
+  <h1>Order Menu</h1>
 
-  <div class="checkout">
-    <p><strong>Total Cost:</strong> <span id="total-cost">$0.00</span></p>
-    <button id="checkout-btn">Checkout</button>
-  </div>
+  <form id="order-form">
+    <label for="customer-name">Name:</label>
+    <input type="text" id="customer-name" required placeholder="Enter your name" />
 
-  <script src="script.js"></script>
+    <div class="menu-container"></div>
+
+    <div class="checkout">
+      <p><strong>Total Cost:</strong> <span id="total-cost">$0.00</span></p>
+      <button type="submit">Submit Order</button>
+    </div>
+  </form>
+
+  <script src="order.js"></script>
 </body>
 </html>

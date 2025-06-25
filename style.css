@@ -46,6 +46,14 @@ h1 {
   width: 100%;
 }
 
+input[type="text"] {
+  padding: 10px;
+  margin-bottom: 15px;
+  width: 50%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
 .checkout {
   margin-top: 30px;
   font-size: 18px;
@@ -53,7 +61,7 @@ h1 {
 
 .checkout button {
   padding: 10px 20px;
-  background-color: #28a745;
+  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
@@ -61,7 +69,7 @@ h1 {
 }
 
 .checkout button:hover {
-  background-color: #218838;
+  background-color: #0056b3;
 }
 
 @media (max-width: 600px) {
