@@ -7,45 +7,29 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Kitchen Order Queue</h1>
-  <div id="kitchen-orders"></div>
+  <h1>Kitchen Order View</h1>
+  <div id="kitchen-order">
+    <p>No order yet.</p>
+  </div>
+  <button onclick="clearOrder()">Complete Order</button>
 
   <script>
-    const container = document.getElementById("kitchen-orders");
+    const order = JSON.parse(localStorage.getItem("order"));
+    const container = document.getElementById("kitchen-order");
 
-    function loadOrders() {
-      const orders = JSON.parse(localStorage.getItem("orders")) || [];
-      container.innerHTML = "";
-
-      if (orders.length === 0) {
-        container.innerHTML = "<p>No orders in queue.</p>";
-        return;
-      }
-
-      orders.forEach((order, i) => {
-        const div = document.createElement("div");
-        div.className = "menu-item";
-        div.innerHTML = \`
-          <h3>Order #\${i + 1} - \${order.name}</h3>
-          <table style="width:100%; text-align:left;">
-            <tr><th>Item</th><th>Qty</th><th>Price</th></tr>
-            \${order.items.map(item => \`<tr><td>\${item.name}</td><td>\${item.quantity}</td><td>\$ \${(item.price * item.quantity).toFixed(2)}</td></tr>\`).join("")}
-          </table>
-          <p><strong>Total:</strong> \$\${order.total.toFixed(2)}</p>
-          <button onclick="completeOrder(\${i})">Complete Order</button>
-        \`;
-        container.appendChild(div);
+    if (order) {
+      let html = `<h3>Customer: ${order.name}</h3><ul>`;
+      order.items.forEach(item => {
+        html += `<li>${item.quantity} x ${item.name}</li>`;
       });
+      html += `</ul><p><strong>Total:</strong> $${order.total.toFixed(2)}</p>`;
+      container.innerHTML = html;
     }
 
-    function completeOrder(index) {
-      const orders = JSON.parse(localStorage.getItem("orders")) || [];
-      orders.splice(index, 1);
-      localStorage.setItem("orders", JSON.stringify(orders));
-      loadOrders();
+    function clearOrder() {
+      localStorage.removeItem("order");
+      container.innerHTML = "<p>Order completed and cleared.</p>";
     }
-
-    loadOrders();
   </script>
 </body>
 </html>

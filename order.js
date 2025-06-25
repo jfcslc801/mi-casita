@@ -51,13 +51,11 @@ document.getElementById("order-form").addEventListener("submit", (e) => {
   selects.forEach((select, index) => {
     const quantity = parseInt(select.value, 10);
     if (quantity > 0) {
-      items.push({ name: menuItems[index].name, quantity, price: menuItems[index].price });
+      items.push({ name: menuItems[index].name, quantity });
     }
   });
 
-  const newOrder = { name, items, total: totalCost };
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  orders.push(newOrder);
-  localStorage.setItem("orders", JSON.stringify(orders));
+  const order = { name, items, total: totalCost };
+  localStorage.setItem("order", JSON.stringify(order));
   window.location.href = "kitchen.html";
 });
