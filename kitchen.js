@@ -78,15 +78,16 @@ function completeOrder(index) {
 
   const currentOrder = orders.splice(index, 1)[0];
   currentOrder.timestamp = Date.now();
-  currentOrder.paid = false;
+  currentOrder.paid = true; // ✅ Mark as paid (ready)
+  currentOrder.status = "Ready for Pickup"; // ✅ Add status
 
-  // ✅ Do NOT merge — always add as a separate completed order
   completed.push(currentOrder);
 
   localStorage.setItem("orders", JSON.stringify(orders));
   localStorage.setItem("completedOrders", JSON.stringify(completed));
   loadOrders();
 }
+
 
 function markAsPaid(index) {
   const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];

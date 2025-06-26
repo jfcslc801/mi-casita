@@ -1,9 +1,10 @@
+
 const menuItems = [
-  { name: "Gorditas de Queso", image: "https://via.placeholder.com/200x140?text=Queso", price: 7.00 },
-  { name: "Gorditas de Desebrada", image: "https://via.placeholder.com/200x140?text=Desebrada", price: 7.00 },
-  { name: "Menudo", image: "https://via.placeholder.com/200x140?text=Menudo", price: 20.00 },
-  { name: "Dozena de Tamales", image: "https://via.placeholder.com/200x140?text=Tamales", price: 22.00 },
-  { name: "Refresco", image: "https://via.placeholder.com/200x140?text=Refresco", price: 1.00 }
+  { name: "Gorditas de Queso", image: "", price: 7.00 },
+  { name: "Gorditas de Desebrada", image: "", price: 7.00 },
+  { name: "Menudo", image: "", price: 20.00 },
+  { name: "Dozena de Tamales", image: "", price: 22.00 },
+  { name: "Refresco", image: "", price: 1.00 }
 ];
 
 const container = document.querySelector(".menu-container");
@@ -14,7 +15,6 @@ menuItems.forEach((item, index) => {
   const div = document.createElement("div");
   div.className = "menu-item";
   div.innerHTML = `
-    <img src="${item.image}" alt="${item.name}">
     <h3>${item.name}</h3>
     <p>Price: $${item.price.toFixed(2)}</p>
     <label for="qty-${index}">Quantity:</label>
@@ -45,28 +45,30 @@ document.getElementById("order-form").addEventListener("submit", (e) => {
   const name = document.getElementById("customer-name").value.trim();
   const phone = document.getElementById("customer-phone").value.trim();
   const selects = document.querySelectorAll(".menu-item select");
-
   const items = [];
+
   selects.forEach((select, index) => {
     const quantity = parseInt(select.value, 10);
     if (quantity > 0) {
-      items.push({
-        name: menuItems[index].name,
-        quantity,
-        price: menuItems[index].price,
-        image: menuItems[index].image
-      });
+      items.push({ name: menuItems[index].name, quantity, price: menuItems[index].price });
     }
   });
 
-  if (!name || !phone || items.length === 0) {
-    alert("Please complete all fields and select at least one item.");
-    return;
-  }
+  if (!items.length) return alert("Please select at least one item.");
 
-  const newOrder = { name, phone, items, total: totalCost };
+  const order = {
+    id: "order-" + Date.now(),
+    name,
+    phone,
+    items,
+    total: totalCost,
+    timestamp: Date.now(),
+    paid: false
+  };
+
   const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  orders.push(newOrder);
+  orders.push(order);
   localStorage.setItem("orders", JSON.stringify(orders));
-  window.location.href = "kitchen.html";
+  localStorage.setItem("latestOrderId", JSON.stringify(order.id));
+  window.location.href = "order-status.html";
 });
