@@ -78,8 +78,7 @@ function completeOrder(index) {
 
   const currentOrder = orders.splice(index, 1)[0];
   currentOrder.timestamp = Date.now();
-  currentOrder.paid = true; // ✅ Mark as paid (ready)
-  currentOrder.status = "Ready for Pickup"; // ✅ Add status
+  currentOrder.status = "Ready for Pickup"; // Keep status but remove paid flag
 
   completed.push(currentOrder);
 
@@ -94,6 +93,7 @@ function markAsPaid(index) {
   if (!completed[index]) return;
 
   completed[index].paid = true;
+  completed[index].paidAt = Date.now(); // ✅ Add paid timestamp
   completed[index].total = 0;
 
   localStorage.setItem("completedOrders", JSON.stringify(completed));
@@ -101,3 +101,10 @@ function markAsPaid(index) {
 }
 
 loadOrders();
+setInterval(loadOrders, 5000); // ✅ Refresh every 5 seconds
+// This will keep the kitchen orders updated in real-time
+// You can adjust the interval as needed
+// Note: This is a simple implementation. In a production app, you might want to use
+// a more sophisticated method like WebSockets or Server-Sent Events for real-time updates.
+// This ensures that the kitchen view is always up-to-date with the latest orders and completed orders.
+// For now, this will suffice for a basic kitchen management system.

@@ -23,24 +23,32 @@
   </div>
 
   <script>
-    function loadStatus() {
-      const latestOrder = JSON.parse(localStorage.getItem("latestOrderId"));
-      const completedOrders = JSON.parse(localStorage.getItem("completedOrders")) || [];
-      const orders = JSON.parse(localStorage.getItem("orders")) || [];
+  function loadStatus() {
+    const latestOrderId = JSON.parse(localStorage.getItem("latestOrderId"));
+    const completedOrders = JSON.parse(localStorage.getItem("completedOrders")) || [];
+    const activeOrders = JSON.parse(localStorage.getItem("orders")) || [];
 
-      let currentOrder = orders.find(o => o.id === latestOrder) || completedOrders.find(o => o.id === latestOrder);
+    let order = activeOrders.find(o => o.id === latestOrderId) || completedOrders.find(o => o.id === latestOrderId);
 
-      if (!currentOrder) {
-        document.querySelector(".status").innerHTML = "Order not found.";
-        return;
-      }
-
-      document.getElementById("customer-name").textContent = currentOrder.name;
-      document.getElementById("order-total").textContent = currentOrder.total.toFixed(2);
-      document.getElementById("order-status").textContent = currentOrder.paid ? "Ready for Pickup" : "Being Prepped";
+    if (!order) {
+      document.querySelector(".status").innerHTML = "❌ Order not found.";
+      return;
     }
 
-    loadStatus();
-  </script>
+    document.getElementById("customer-name").textContent = order.name;
+    document.getElementById("order-total").textContent = order.total.toFixed(2);
+
+    let statusText = order.status || "Being Prepped";
+    if (order.paid) {
+      statusText = `✅ Ready for Pickup (Paid ${new Date(order.paidAt).toLocaleTimeString()})`;
+    }
+
+    document.getElementById("order-status").textContent = statusText;
+  }
+
+  // ✅ Refresh status every 5 seconds
+  setInterval(loadStatus, 5000);
+  loadStatus();
+</script>
 </body>
 </html>
