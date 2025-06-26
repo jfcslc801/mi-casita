@@ -134,3 +134,32 @@ button:hover {
   margin-top: 5px;
   text-align: center;
 }
+
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.qty-stepper button {
+  padding: 6px 12px;
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.qty-stepper button:hover {
+  background-color: #0056b3;
+}
+
+.qty-stepper span {
+  font-size: 18px;
+  min-width: 24px;
+  text-align: center;
+}
