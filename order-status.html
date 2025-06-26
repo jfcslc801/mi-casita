@@ -4,58 +4,8 @@
   <meta charset="UTF-8" />
   <title>Order Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 30px; }
-    .card { background: #f9f9f9; padding: 20px; border-radius: 10px; max-width: 600px; margin: 20px auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h2 { margin-bottom: 10px; }
-    .order-list { margin-top: 30px; }
-    .order-block {
-      background: #f1f1f1;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      text-align: left;
-    }
-    .highlight {
-      background: #e6ffe6;
-      border: 2px solid #28a745;
-    }
-    .prepping {
-      background-color: #fff8e1;
-      border: 2px solid #ffc107;
-    }
-    .order-block h3 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-    .status-text {
-      font-weight: bold;
-    }
-    .progress-container {
-      margin-top: 15px;
-      background: #eee;
-      border-radius: 20px;
-      overflow: hidden;
-      height: 16px;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 0;
-      background-color: #28a745;
-      transition: width 0.5s ease;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 5px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover { background: #0056b3; }
-  </style>
+  <link rel="stylesheet" href="style.css" />
+   <link rel="stylesheet" href="order-status.css" />
 </head>
 <body>
   <div class="card">
@@ -67,75 +17,6 @@
     <button onclick="window.location.href='index.html'">Place New Order</button>
   </div>
 
-  <script>
-    function loadStatus() {
-      const phone = localStorage.getItem("latestCustomerPhone");
-      const statusContainer = document.querySelector(".status");
-      if (!phone) {
-        statusContainer.innerHTML = "❌ No customer phone stored.";
-        return;
-      }
-
-      const now = Date.now();
-      const orders = [
-        ...(JSON.parse(localStorage.getItem("orders")) || []),
-        ...(JSON.parse(localStorage.getItem("completedOrders")) || [])
-      ];
-
-      const customerOrders = orders
-        .filter(order => order.phone === phone)
-        .sort((a, b) => b.timestamp - a.timestamp);
-
-      statusContainer.innerHTML = "";
-
-      if (customerOrders.length === 0) {
-        statusContainer.innerHTML = `<p>No orders found for ${phone}</p>`;
-        return;
-      }
-
-      customerOrders.forEach((order, i) => {
-        const isMostRecent = i === 0;
-        const isPaid = order.paid === true;
-        const paidAt = order.paidAt || order.timestamp;
-        const isExpired = isPaid && (now - paidAt > 3600000);
-        if (isExpired) return;
-
-        let statusText = order.status || "Being Prepped";
-        if (isPaid) {
-          statusText = `✅ Ready for Pickup (Paid ${new Date(paidAt).toLocaleTimeString()})`;
-        }
-
-        let progress = 33;
-        if (statusText.toLowerCase().includes("ready")) progress = 66;
-        if (isPaid) progress = 100;
-
-        const block = document.createElement("div");
-        let blockClass = "order-block";
-        if (isMostRecent) blockClass += " highlight";
-        if (!isPaid && statusText.toLowerCase().includes("prepped")) blockClass += " prepping";
-        block.className = blockClass;
-
-        block.innerHTML = `
-          <h3>${isMostRecent ? "🟢 Latest Order" : "Order"}</h3>
-          <p><strong>Name:</strong> ${order.name}</p>
-          <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
-          <p class="status-text"><strong>Status:</strong> ${statusText}</p>
-          <div class="progress-container">
-            <div class="progress-bar" style="width: ${progress}%"></div>
-          </div>
-        `;
-
-        statusContainer.appendChild(block);
-      });
-    }
-
-    setInterval(loadStatus, 5000);
-    loadStatus();
-  </script>
-
-  <script>
-    document.getElementById("customer-name").textContent = localStorage.getItem("latestCustomerName") || "Customer";
-    document.getElementById("order-total").textContent = parseFloat(localStorage.getItem("latestOrderTotal") || "0.00").toFixed(2);
-  </script>
+  <script src="order-status.js"></script>
 </body>
 </html>
