@@ -73,5 +73,7 @@ document.getElementById("order-form").addEventListener("submit", (e) => {
   orders.push(order);
   localStorage.setItem("orders", JSON.stringify(orders));
   localStorage.setItem("latestOrderId", JSON.stringify(order.id));
+  localStorage.setItem("latestCustomerPhone", phone);
+  localStorage.setItem("latestOrderTimestamp", order.timestamp);
   window.location.href = "order-status.html";
 });
