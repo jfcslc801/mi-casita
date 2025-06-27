@@ -38,51 +38,46 @@ function loadOrders() {
     container.appendChild(div);
   });
 
-  // Divider for completed section
   if (completed.length > 0) {
     container.innerHTML += "<hr><h2>Completed Orders</h2>";
   }
 
-  // ✅ Group completed orders by phone number
-  const groupedCompleted = completed.reduce((acc, order) => {
-    const phone = order.phone;
-    if (!acc[phone]) {
-      acc[phone] = {
-        phone,
+  // Split into unpaid and paid completed orders
+  const unpaidCompleted = completed.filter(order => !order.paid);
+  const paidCompleted = completed.filter(order => order.paid);
+
+  // Group unpaid completed by phone
+  const groupedUnpaid = {};
+  unpaidCompleted.forEach(order => {
+    if (!groupedUnpaid[order.phone]) {
+      groupedUnpaid[order.phone] = {
+        phone: order.phone,
         name: order.name,
         items: [...order.items],
         total: order.total,
-        paid: order.paid || false,
-        paidAt: order.paidAt || null,
-        latestTimestamp: order.timestamp || 0
+        latestTimestamp: order.timestamp
       };
     } else {
-      acc[phone].items.push(...order.items);
-      acc[phone].total += order.total;
-      if (order.timestamp > acc[phone].latestTimestamp) {
-        acc[phone].latestTimestamp = order.timestamp;
-        acc[phone].name = order.name;
-      }
-      if (order.paid) {
-        acc[phone].paid = true;
-        acc[phone].paidAt = order.paidAt || order.timestamp;
+      groupedUnpaid[order.phone].items.push(...order.items);
+      groupedUnpaid[order.phone].total += order.total;
+      if (order.timestamp > groupedUnpaid[order.phone].latestTimestamp) {
+        groupedUnpaid[order.phone].latestTimestamp = order.timestamp;
+        groupedUnpaid[order.phone].name = order.name;
       }
     }
-    return acc;
-  }, {});
+  });
 
-  // ✅ Render grouped completed orders
-  Object.values(groupedCompleted).forEach(order => {
+  // Render grouped unpaid completed orders
+  Object.values(groupedUnpaid).forEach(group => {
     const div = document.createElement("div");
     div.className = "order-card";
 
     const itemMap = {};
-    order.items.forEach(item => {
-      const key = item.name;
-      if (!itemMap[key]) {
-        itemMap[key] = { quantity: 0, price: item.price };
+    group.items.forEach(item => {
+      if (!itemMap[item.name]) {
+        itemMap[item.name] = { quantity: 0, price: item.price };
       }
-      itemMap[key].quantity += item.quantity;
+      itemMap[item.name].quantity += item.quantity;
     });
 
     const itemsHtml = `
@@ -93,21 +88,81 @@ function loadOrders() {
             <td>${name}</td>
             <td>${data.quantity}</td>
             <td>$${(data.quantity * data.price).toFixed(2)}</td>
-          </tr>
-        `).join('')}
+          </tr>`).join('')}
       </table>
     `;
 
     div.innerHTML = `
-      <h3>${order.name} (${order.phone})</h3>
-      <p><em>Completed: ${new Date(order.latestTimestamp).toLocaleString()}</em></p>
+      <h3>${group.name} (${group.phone})</h3>
+      <p><em>Completed: ${new Date(group.latestTimestamp).toLocaleString()}</em></p>
       ${itemsHtml}
-      <p class="total">Total: $${order.total.toFixed(2)}</p>
-      ${order.paid ? "<p><strong>✅ Paid</strong></p>" : `<button onclick="markGroupAsPaid('${order.phone}')">Mark as Paid</button>`}
+      <p class="total">Total: $${group.total.toFixed(2)}</p>
+      <button onclick="markGroupAsPaid('${group.phone}')">Mark as Paid</button>
     `;
 
     container.appendChild(div);
   });
+
+  // Group paid orders by phone + paidAt (so we keep them grouped but unique after paid)
+  const groupedPaid = {};
+  paidCompleted.forEach(order => {
+    const groupId = `${order.phone}-${order.paidAt || order.timestamp}`;
+    if (!groupedPaid[groupId]) {
+      groupedPaid[groupId] = {
+        phone: order.phone,
+        name: order.name,
+        items: [...order.items],
+        total: order.total,
+        latestTimestamp: order.timestamp,
+        paidAt: order.paidAt
+      };
+    } else {
+      groupedPaid[groupId].items.push(...order.items);
+      groupedPaid[groupId].total += order.total;
+      if (order.timestamp > groupedPaid[groupId].latestTimestamp) {
+        groupedPaid[groupId].latestTimestamp = order.timestamp;
+        groupedPaid[groupId].name = order.name;
+      }
+    }
+  });
+
+  // ✅ Render paid grouped orders, sorted from newest to oldest
+  Object.values(groupedPaid)
+    .sort((a, b) => b.latestTimestamp - a.latestTimestamp)
+    .forEach(group => {
+      const div = document.createElement("div");
+      div.className = "order-card paid";
+
+      const itemMap = {};
+      group.items.forEach(item => {
+        if (!itemMap[item.name]) {
+          itemMap[item.name] = { quantity: 0, price: item.price };
+        }
+        itemMap[item.name].quantity += item.quantity;
+      });
+
+      const itemsHtml = `
+        <table>
+          <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
+          ${Object.entries(itemMap).map(([name, data]) => `
+            <tr>
+              <td>${name}</td>
+              <td>${data.quantity}</td>
+              <td>$${(data.quantity * data.price).toFixed(2)}</td>
+            </tr>`).join('')}
+        </table>
+      `;
+
+      div.innerHTML = `
+        <h3>${group.name} (${group.phone})</h3>
+        <p><em>Completed: ${new Date(group.latestTimestamp).toLocaleString()}</em></p>
+        ${itemsHtml}
+        <p class="total">Total: $${group.total.toFixed(2)}</p>
+        <p><strong>✅ Paid</strong></p>
+      `;
+
+      container.appendChild(div);
+    });
 }
 
 function completeOrder(index) {
@@ -125,19 +180,6 @@ function completeOrder(index) {
   loadOrders();
 }
 
-function markAsPaid(index) {
-  const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
-  if (!completed[index]) return;
-
-  completed[index].paid = true;
-  completed[index].paidAt = Date.now();
-  completed[index].total = 0;
-
-  localStorage.setItem("completedOrders", JSON.stringify(completed));
-  loadOrders();
-}
-
-// ✅ New: Mark all orders with this phone number as paid
 function markGroupAsPaid(phone) {
   const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
   const now = Date.now();
@@ -145,7 +187,6 @@ function markGroupAsPaid(phone) {
     if (order.phone === phone && !order.paid) {
       order.paid = true;
       order.paidAt = now;
-      order.total = 0;
     }
   });
   localStorage.setItem("completedOrders", JSON.stringify(completed));
