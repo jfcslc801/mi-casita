@@ -43,29 +43,67 @@ function loadOrders() {
     container.innerHTML += "<hr><h2>Completed Orders</h2>";
   }
 
-  // Render completed orders
-  completed.forEach((order, index) => {
+  // ✅ Group completed orders by phone number
+  const groupedCompleted = completed.reduce((acc, order) => {
+    const phone = order.phone;
+    if (!acc[phone]) {
+      acc[phone] = {
+        phone,
+        name: order.name,
+        items: [...order.items],
+        total: order.total,
+        paid: order.paid || false,
+        paidAt: order.paidAt || null,
+        latestTimestamp: order.timestamp || 0
+      };
+    } else {
+      acc[phone].items.push(...order.items);
+      acc[phone].total += order.total;
+      if (order.timestamp > acc[phone].latestTimestamp) {
+        acc[phone].latestTimestamp = order.timestamp;
+        acc[phone].name = order.name;
+      }
+      if (order.paid) {
+        acc[phone].paid = true;
+        acc[phone].paidAt = order.paidAt || order.timestamp;
+      }
+    }
+    return acc;
+  }, {});
+
+  // ✅ Render grouped completed orders
+  Object.values(groupedCompleted).forEach(order => {
     const div = document.createElement("div");
     div.className = "order-card";
+
+    const itemMap = {};
+    order.items.forEach(item => {
+      const key = item.name;
+      if (!itemMap[key]) {
+        itemMap[key] = { quantity: 0, price: item.price };
+      }
+      itemMap[key].quantity += item.quantity;
+    });
 
     const itemsHtml = `
       <table>
         <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
-        ${order.items.map(item => `
+        ${Object.entries(itemMap).map(([name, data]) => `
           <tr>
-            <td>${item.name}</td>
-            <td>${item.quantity}</td>
-            <td>$${(item.price * item.quantity).toFixed(2)}</td>
-          </tr>`).join('')}
+            <td>${name}</td>
+            <td>${data.quantity}</td>
+            <td>$${(data.quantity * data.price).toFixed(2)}</td>
+          </tr>
+        `).join('')}
       </table>
     `;
 
     div.innerHTML = `
       <h3>${order.name} (${order.phone})</h3>
-      <p><em>Completed: ${order.timestamp ? new Date(order.timestamp).toLocaleString() : "Unknown"}</em></p>
+      <p><em>Completed: ${new Date(order.latestTimestamp).toLocaleString()}</em></p>
       ${itemsHtml}
       <p class="total">Total: $${order.total.toFixed(2)}</p>
-      ${order.paid ? "<p><strong>✅ Paid</strong></p>" : `<button onclick="markAsPaid(${index})">Mark as Paid</button>`}
+      ${order.paid ? "<p><strong>✅ Paid</strong></p>" : `<button onclick="markGroupAsPaid('${order.phone}')">Mark as Paid</button>`}
     `;
 
     container.appendChild(div);
@@ -78,7 +116,7 @@ function completeOrder(index) {
 
   const currentOrder = orders.splice(index, 1)[0];
   currentOrder.timestamp = Date.now();
-  currentOrder.status = "Ready for Pickup"; // Keep status but remove paid flag
+  currentOrder.status = "Ready for Pickup";
 
   completed.push(currentOrder);
 
@@ -87,24 +125,32 @@ function completeOrder(index) {
   loadOrders();
 }
 
-
 function markAsPaid(index) {
   const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
   if (!completed[index]) return;
 
   completed[index].paid = true;
-  completed[index].paidAt = Date.now(); // ✅ Add paid timestamp
+  completed[index].paidAt = Date.now();
   completed[index].total = 0;
 
   localStorage.setItem("completedOrders", JSON.stringify(completed));
   loadOrders();
 }
 
+// ✅ New: Mark all orders with this phone number as paid
+function markGroupAsPaid(phone) {
+  const completed = JSON.parse(localStorage.getItem("completedOrders")) || [];
+  const now = Date.now();
+  completed.forEach(order => {
+    if (order.phone === phone && !order.paid) {
+      order.paid = true;
+      order.paidAt = now;
+      order.total = 0;
+    }
+  });
+  localStorage.setItem("completedOrders", JSON.stringify(completed));
+  loadOrders();
+}
+
 loadOrders();
-setInterval(loadOrders, 5000); // ✅ Refresh every 5 seconds
-// This will keep the kitchen orders updated in real-time
-// You can adjust the interval as needed
-// Note: This is a simple implementation. In a production app, you might want to use
-// a more sophisticated method like WebSockets or Server-Sent Events for real-time updates.
-// This ensures that the kitchen view is always up-to-date with the latest orders and completed orders.
-// For now, this will suffice for a basic kitchen management system.
+setInterval(loadOrders, 5000);

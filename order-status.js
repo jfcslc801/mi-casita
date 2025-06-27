@@ -3,14 +3,27 @@ function loadStatus() {
   const nameEl = document.getElementById("customer-name");
   const totalEl = document.getElementById("order-total");
 
-  const phone = localStorage.getItem("latestCustomerPhone");
-  const name = localStorage.getItem("latestCustomerName") || "Customer";
-  const orders = [
+  // Ensure latest customer phone/name are available
+  let phone = localStorage.getItem("latestCustomerPhone");
+  let name = localStorage.getItem("latestCustomerName");
+
+  const allOrders = [
     ...(JSON.parse(localStorage.getItem("orders")) || []),
     ...(JSON.parse(localStorage.getItem("completedOrders")) || [])
   ];
 
-  nameEl.textContent = name;
+  // Fallback: get from most recent order
+  if (!phone || !name) {
+    const latestOrder = allOrders.slice(-1)[0];
+    if (latestOrder) {
+      phone = latestOrder.phone;
+      name = latestOrder.name;
+      localStorage.setItem("latestCustomerPhone", phone);
+      localStorage.setItem("latestCustomerName", name);
+    }
+  }
+
+  nameEl.textContent = name || "Customer";
 
   if (!phone) {
     statusContainer.innerHTML = "❌ No customer phone stored.";
@@ -19,7 +32,7 @@ function loadStatus() {
   }
 
   const now = Date.now();
-  const customerOrders = orders
+  const customerOrders = allOrders
     .filter(order => order.phone === phone)
     .sort((a, b) => b.timestamp - a.timestamp);
 
@@ -39,7 +52,7 @@ function loadStatus() {
     const isMostRecent = i === 0;
     const isPaid = order.paid === true;
     const paidAt = order.paidAt || order.timestamp;
-    const isExpired = isPaid && (Date.now() - paidAt > 600000); // 10 min
+    const isExpired = isPaid && (Date.now() - paidAt > 600000); // 10 minutes
     if (isExpired) return;
 
     let statusText = order.status || "Being Prepped";
@@ -74,29 +87,8 @@ function loadStatus() {
   });
 }
 
+// Initial + repeat every 5 seconds
 document.addEventListener("DOMContentLoaded", () => {
   loadStatus();
-  setInterval(loadStatus, 5000); // auto-refresh every 5 seconds
+  setInterval(loadStatus, 5000);
 });
-// Ensure the latest customer phone and name are stored
-const latestPhone = localStorage.getItem("latestCustomerPhone");
-const latestName = localStorage.getItem("latestCustomerName");
-if (!latestPhone || !latestName) {
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  if (orders.length > 0) {
-    const latestOrder = orders[orders.length - 1];
-    localStorage.setItem("latestCustomerPhone", latestOrder.phone);
-    localStorage.setItem("latestCustomerName", latestOrder.name);
-  }
-}
-// This ensures that the latest customer phone and name are always available
-// for the status page, even if the user navigates away and comes back later.
-// It checks if the latest phone and name are already set, and if not,
-// it retrieves the most recent order from the orders list and sets them accordingly.
-// This way, the status page will always display the most recent customer's information
-// without requiring the user to manually enter it again.
-// This is particularly useful for scenarios where the user might be checking
-// the status of their order after placing it, ensuring a seamless experience.
-// The auto-refresh functionality ensures that the status is updated in real-time,
-// providing the user with the latest information about their order without needing to reload the page.
-// This code is designed to enhance the user experience by keeping the status page
