@@ -22,6 +22,12 @@ h1 {
   padding: 15px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-item:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .menu-item img {
@@ -39,10 +45,12 @@ h1 {
   margin: 5px 0;
 }
 
-.menu-item select {
-  margin-top: 5px;
+.menu-item input[type="number"] {
+  width: 60px;
   padding: 5px;
-  width: 100%;
+  font-size: 16px;
+  margin-top: 5px;
+  text-align: center;
 }
 
 input[type="text"] {
@@ -65,6 +73,7 @@ input[type="text"] {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .checkout button:hover {
@@ -81,8 +90,39 @@ input[type="text"] {
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.order-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ Green background for paid orders */
+.order-card.paid {
+  background-color: #e6f9ec;
+  border-color: #66bb6a;
+}
+
+/* ✅ Color-coded status labels */
+.status-text {
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.status-text.preparing {
+  color: #ff9800;
+}
+
+.status-text.ready {
+  color: #2196f3;
+}
+
+.status-text.paid {
+  color: #2e7d32;
+}
+
+/* ✅ Table styles */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -107,6 +147,7 @@ tr:nth-child(even) {
   margin-top: 10px;
 }
 
+/* General button styles */
 button {
   margin-top: 10px;
   padding: 10px 20px;
@@ -115,26 +156,14 @@ button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
   background-color: #c62828;
 }
 
-@media (max-width: 600px) {
-  .menu-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-.menu-item input[type="number"] {
-  width: 60px;
-  padding: 5px;
-  font-size: 16px;
-  margin-top: 5px;
-  text-align: center;
-}
-
+/* Quantity stepper */
 .qty-stepper {
   display: flex;
   align-items: center;
@@ -152,6 +181,7 @@ button:hover {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .qty-stepper button:hover {
@@ -164,3 +194,13 @@ button:hover {
   text-align: center;
 }
 
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .menu-container {
+    grid-template-columns: 1fr;
+  }
+
+  input[type="text"] {
+    width: 80%;
+  }
+}

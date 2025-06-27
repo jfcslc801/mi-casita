@@ -16,7 +16,9 @@
     <label for="customer-phone">Phone:</label>
     <input type="text" id="customer-phone" required placeholder="Enter your phone number" />
 
-    <div class="menu-container"></div>
+    <div class="menu-container" id="menu-container">
+      <!-- Menu items will be dynamically inserted by order.js -->
+    </div>
 
     <div class="checkout">
       <p><strong>Total Cost:</strong> <span id="total-cost">$0.00</span></p>
@@ -24,6 +26,7 @@
     </div>
   </form>
 
-  <script src="order.js"></script>
+  <!-- Load script at bottom to ensure DOM is ready -->
+  <script src="order.js" defer></script>
 </body>
 </html>

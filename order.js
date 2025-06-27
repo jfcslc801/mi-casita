@@ -1,79 +1,128 @@
-const menuItems = [
-  { name: "Gorditas de Queso", image: "", price: 7.00 },
-  { name: "Gorditas de Desebrada", image: "", price: 7.00 },
-  { name: "Menudo", image: "", price: 20.00 },
-  { name: "Dozena de Tamales", image: "", price: 22.00 },
-  { name: "Refresco", image: "", price: 1.00 }
-];
+document.addEventListener("DOMContentLoaded", () => {
+  const menuItems = [
+    {
+      name: "Tamales",
+      price: 3.5,
+      image: "images/tamales.jpg",
+    },
+    {
+      name: "Gorditas",
+      price: 5.0,
+      image: "images/gorditas.jpg",
+    },
+    {
+      name: "Gordita",
+      price: 4.5,
+      image: "images/gordita.jpg",
+    },
+    {
+      name: "Menudo",
+      price: 8.0,
+      image: "images/menudo.jpg",
+    },
+  ];
 
-const container = document.querySelector(".menu-container");
-const totalCostEl = document.getElementById("total-cost");
-let totalCost = 0;
-const quantities = new Array(menuItems.length).fill(0);
+  const menuContainer = document.getElementById("menu-container");
+  const totalCostEl = document.getElementById("total-cost");
+  const orderForm = document.getElementById("order-form");
 
-menuItems.forEach((item, index) => {
-  const div = document.createElement("div");
-  div.className = "menu-item";
-  div.innerHTML = `
-    <h3>${item.name}</h3>
-    <p>Price: $${item.price.toFixed(2)}</p>
-    <label>Quantity:</label>
-    <div class="qty-stepper">
-      <button type="button" onclick="changeQty(${index}, -1)">−</button>
-      <span id="qty-display-${index}">0</span>
-      <button type="button" onclick="changeQty(${index}, 1)">+</button>
-    </div>
-  `;
-  container.appendChild(div);
-});
+  // Create item cards
+  menuItems.forEach((item, index) => {
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "menu-item";
 
-window.changeQty = function(index, delta) {
-  quantities[index] = Math.max(0, quantities[index] + delta);
-  document.getElementById(`qty-display-${index}`).textContent = quantities[index];
-  updateTotal();
-};
+    itemDiv.innerHTML = `
+      <img src="${item.image}" alt="${item.name}" />
+      <h3>${item.name}</h3>
+      <p><strong>Price:</strong> $${item.price.toFixed(2)}</p>
+      <div class="qty-stepper">
+        <button type="button" class="decrease">-</button>
+        <span class="qty">0</span>
+        <button type="button" class="increase">+</button>
+      </div>
+    `;
 
-function updateTotal() {
-  totalCost = 0;
-  quantities.forEach((qty, index) => {
-    totalCost += qty * menuItems[index].price;
+    menuContainer.appendChild(itemDiv);
   });
-  totalCostEl.textContent = `$${totalCost.toFixed(2)}`;
-}
 
-document.getElementById("order-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const name = document.getElementById("customer-name").value.trim();
-  const phone = document.getElementById("customer-phone").value.trim();
-  const items = [];
+  function calculateTotal() {
+    const quantities = document.querySelectorAll(".qty");
+    let total = 0;
 
-  quantities.forEach((qty, index) => {
-    if (qty > 0) {
-      items.push({
-        name: menuItems[index].name,
-        quantity: qty,
-        price: menuItems[index].price
-      });
+    quantities.forEach((qtyEl, i) => {
+      const qty = parseInt(qtyEl.textContent);
+      total += qty * menuItems[i].price;
+    });
+
+    totalCostEl.textContent = `$${total.toFixed(2)}`;
+  }
+
+  menuContainer.addEventListener("click", (e) => {
+    const btn = e.target;
+    const stepper = btn.closest(".qty-stepper");
+    if (!stepper) return;
+
+    const qtyEl = stepper.querySelector(".qty");
+    let qty = parseInt(qtyEl.textContent);
+
+    if (btn.classList.contains("increase")) {
+      qty += 1;
+    } else if (btn.classList.contains("decrease") && qty > 0) {
+      qty -= 1;
     }
+
+    qtyEl.textContent = qty;
+    calculateTotal();
   });
 
-  if (!items.length) return alert("Please select at least one item.");
+  orderForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  const order = {
-    id: "order-" + Date.now(),
-    name,
-    phone,
-    items,
-    total: totalCost,
-    timestamp: Date.now(),
-    paid: false
-  };
+    const name = document.getElementById("customer-name").value.trim();
+    const phone = document.getElementById("customer-phone").value.trim();
+    const quantities = document.querySelectorAll(".qty");
 
-  const orders = JSON.parse(localStorage.getItem("orders")) || [];
-  orders.push(order);
-  localStorage.setItem("orders", JSON.stringify(orders));
-  localStorage.setItem("latestOrderId", JSON.stringify(order.id));
-  localStorage.setItem("latestCustomerPhone", phone);
-  localStorage.setItem("latestOrderTimestamp", order.timestamp);
-  window.location.href = "order-status.html";
+    const items = [];
+    let total = 0;
+
+    quantities.forEach((qtyEl, i) => {
+      const qty = parseInt(qtyEl.textContent);
+      if (qty > 0) {
+        const item = menuItems[i];
+        items.push({
+          name: item.name,
+          price: item.price,
+          quantity: qty,
+        });
+        total += item.price * qty;
+      }
+    });
+
+    if (items.length === 0) {
+      alert("Please select at least one item.");
+      return;
+    }
+
+    const newOrder = {
+      name,
+      phone,
+      items,
+      total,
+      status: "Being Prepped",
+      timestamp: Date.now(),
+      paid: false,
+    };
+
+    const existingOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    existingOrders.push(newOrder);
+    localStorage.setItem("orders", JSON.stringify(existingOrders));
+
+    localStorage.setItem("latestCustomerName", name);
+    localStorage.setItem("latestCustomerPhone", phone);
+
+    alert("✅ Order submitted!");
+    window.location.href = "order-status.html";
+  });
 });
+// This code handles the order submission and menu display for a food ordering system.
+// It allows users to select items, adjust quantities, and submit their orders.
