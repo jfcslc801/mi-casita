@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const isAdmin = ["+18013474922", "+18012323880"].includes(user.phoneNumber);
-    if (isAdmin) adminNav.style.display = "block";
+    if (isAdmin && adminNav) adminNav.style.display = "block";
 
     try {
       nameEl.textContent = user.displayName || "Customer";
@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         output += `
           <div class="order-block">
+            <p><strong>Customer:</strong> ${order.name || "N/A"}</p>
             <p><strong>Items:</strong><br>${itemList}</p>
             <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
             <p><strong>Status:</strong> ${order.status || "Being Prepped"}</p>

@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Order Status</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="order-status.css" />
+  <link rel="stylesheet" href="order-status.css">
+  <script type="module" src="order-status.js" defer></script>
 </head>
 <body>
   <!-- Admin Navigation -->
@@ -18,14 +17,13 @@
     </nav>
   </div>
 
-  <!-- Order Status Card -->
+  <!-- Order Summary -->
   <div class="card">
-    <h2>Thank you for your order, <span id="customer-name">Customer</span>!</h2>
+    <h1>Thank you for your order, <span id="customer-name">Customer</span>!</h1>
     <p><strong>Unpaid Total:</strong> $<span id="order-total">0.00</span></p>
-    <div id="orders-container" class="order-list status">Loading your orders...</div>
-    <button onclick="window.location.href='index.html'">Place New Order</button>
+    <div id="orders-container" class="order-list">
+      <!-- Orders will be dynamically inserted here -->
+    </div>
   </div>
-
-  <script type="module" src="order-status.js"></script>
 </body>
 </html>

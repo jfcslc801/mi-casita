@@ -1,7 +1,9 @@
 import { auth } from './firebase-config.js';
 import {
   RecaptchaVerifier,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
+  updateProfile,
+  onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
 
 const loginForm = document.getElementById("login-form");
@@ -13,16 +15,19 @@ const verifyButton = document.getElementById("verify-code");
 
 let confirmationResult = null;
 
+// Format phone input
 phoneInput.addEventListener("input", () => {
   phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 10);
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize invisible reCAPTCHA
+window.addEventListener("DOMContentLoaded", () => {
   window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
     size: 'invisible'
   }, auth);
 });
 
+// Submit phone number and name
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -48,6 +53,7 @@ loginForm.addEventListener("submit", async (e) => {
   }
 });
 
+// Verify the code
 verifyButton.addEventListener("click", async () => {
   const code = codeInput.value.trim();
   if (!code) return alert("Please enter the verification code.");
@@ -56,10 +62,18 @@ verifyButton.addEventListener("click", async () => {
     const result = await confirmationResult.confirm(code);
     const user = result.user;
     const phone = user.phoneNumber;
+    const displayName = localStorage.getItem("userName") || "Customer";
 
+    // Save phone for later logic
     localStorage.setItem("userPhone", phone);
-    const rawPhone = localStorage.getItem("rawPhone");
 
+    // If user has no displayName, update it
+    if (!user.displayName || user.displayName === "") {
+      await updateProfile(user, { displayName });
+    }
+
+    // Redirect based on admin
+    const rawPhone = localStorage.getItem("rawPhone");
     if (rawPhone === "8013474922") {
       window.location.href = "kitchen.html";
     } else {
