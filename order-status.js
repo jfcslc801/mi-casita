@@ -1,94 +1,64 @@
-function loadStatus() {
-  const statusContainer = document.querySelector(".status");
-  const nameEl = document.getElementById("customer-name");
-  const totalEl = document.getElementById("order-total");
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  // Ensure latest customer phone/name are available
-  let phone = localStorage.getItem("latestCustomerPhone");
-  let name = localStorage.getItem("latestCustomerName");
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  const allOrders = [
-    ...(JSON.parse(localStorage.getItem("orders")) || []),
-    ...(JSON.parse(localStorage.getItem("completedOrders")) || [])
-  ];
+import { app } from "./firebase-config.js";
 
-  // Fallback: get from most recent order
-  if (!phone || !name) {
-    const latestOrder = allOrders.slice(-1)[0];
-    if (latestOrder) {
-      phone = latestOrder.phone;
-      name = latestOrder.name;
-      localStorage.setItem("latestCustomerPhone", phone);
-      localStorage.setItem("latestCustomerName", name);
-    }
-  }
+const db = getFirestore(app);
+const auth = getAuth(app);
+const orderList = document.getElementById("order-status");
 
-  nameEl.textContent = name || "Customer";
-
-  if (!phone) {
-    statusContainer.innerHTML = "❌ No customer phone stored.";
-    totalEl.textContent = "0.00";
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
     return;
   }
 
-  const now = Date.now();
-  const customerOrders = allOrders
-    .filter(order => order.phone === phone)
-    .sort((a, b) => b.timestamp - a.timestamp);
+  const userId = user.uid;
+  const ordersRef = collection(db, "orders");
+  const q = query(ordersRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
 
-  const unpaidTotal = customerOrders
-    .filter(order => !order.paid)
-    .reduce((sum, order) => sum + order.total, 0);
-
-  totalEl.textContent = unpaidTotal.toFixed(2);
-  statusContainer.innerHTML = "";
-
-  if (customerOrders.length === 0) {
-    statusContainer.innerHTML = `<p>No orders found for ${phone}</p>`;
-    return;
-  }
-
-  customerOrders.forEach((order, i) => {
-    const isMostRecent = i === 0;
-    const isPaid = order.paid === true;
-    const paidAt = order.paidAt || order.timestamp;
-    const isExpired = isPaid && (Date.now() - paidAt > 600000); // 10 minutes
-    if (isExpired) return;
-
-    let statusText = order.status || "Being Prepped";
-    if (isPaid) {
-      statusText = `✅ Ready for Pickup (Paid ${new Date(paidAt).toLocaleTimeString()})`;
+  onSnapshot(q, (snapshot) => {
+    orderList.innerHTML = "";
+    if (snapshot.empty) {
+      orderList.innerHTML = "<p>No orders found.</p>";
+      return;
     }
 
-    let progress = 33;
-    if (statusText.toLowerCase().includes("ready")) progress = 66;
-    if (isPaid) progress = 100;
+    snapshot.forEach((doc) => {
+      const order = doc.data();
+      const div = document.createElement("div");
+      div.className = "order-card";
 
-    const itemsLine = order.items.map(item => `${item.name} × ${item.quantity}`).join(', ');
+      const itemsHtml = order.items
+        .map(
+          (item) =>
+            `<li>${item.quantity} x ${item.name} - $${(
+              item.quantity * item.price
+            ).toFixed(2)}</li>`
+        )
+        .join("");
 
-    const block = document.createElement("div");
-    let blockClass = "order-block";
-    if (isMostRecent) blockClass += " highlight";
-    if (!isPaid && statusText.toLowerCase().includes("prepped")) blockClass += " prepping";
-    block.className = blockClass;
+      div.innerHTML = `
+        <h3>Status: ${order.status}</h3>
+        <ul>${itemsHtml}</ul>
+        <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+        <p><em>Time: ${new Date(
+          order.timestamp.seconds * 1000
+        ).toLocaleString()}</em></p>
+      `;
 
-    block.innerHTML = `
-      <h3>${isMostRecent ? "🟢 Latest Order" : "Order"}</h3>
-      <p><strong>Name:</strong> ${order.name}</p>
-      <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
-      <p><strong>Items:</strong> ${itemsLine}</p>
-      <p class="status-text"><strong>Status:</strong> ${statusText}</p>
-      <div class="progress-container">
-        <div class="progress-bar" style="width: ${progress}%"></div>
-      </div>
-    `;
-
-    statusContainer.appendChild(block);
+      orderList.appendChild(div);
+    });
   });
-}
-
-// Initial + repeat every 5 seconds
-document.addEventListener("DOMContentLoaded", () => {
-  loadStatus();
-  setInterval(loadStatus, 5000);
 });

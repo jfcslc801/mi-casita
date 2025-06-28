@@ -1,12 +1,21 @@
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+  getAuth,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { app } from "./firebase-config.js";
+
+const db = getFirestore(app);
+const auth = getAuth(app);
+
 document.addEventListener("DOMContentLoaded", () => {
-  const userName = localStorage.getItem("userName");
-  const userPhone = localStorage.getItem("userPhone");
-
-  if (!userName || !userPhone) {
-    window.location.href = "login.html";
-    return;
-  }
-
   const menuItems = [
     { name: "Gorditas de Queso", price: 5.0, image: "images/gorditas.jpg" },
     { name: "Gorditas de Desebrada", price: 5.0, image: "images/gordita.jpg" },
@@ -64,48 +73,55 @@ document.addEventListener("DOMContentLoaded", () => {
     calculateTotal();
   });
 
-  orderForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const name = userName;
-    const phone = userPhone;
-    const quantities = document.querySelectorAll(".qty");
-
-    const items = [];
-    let total = 0;
-
-    quantities.forEach((qtyEl, i) => {
-      const qty = parseInt(qtyEl.textContent);
-      if (qty > 0) {
-        const item = menuItems[i];
-        items.push({ name: item.name, price: item.price, quantity: qty });
-        total += item.price * qty;
-      }
-    });
-
-    if (items.length === 0) {
-      alert("Please select at least one item.");
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
       return;
     }
 
-    const newOrder = {
-      name,
-      phone,
-      items,
-      total,
-      status: "Being Prepped",
-      timestamp: Date.now(),
-      paid: false,
-    };
+    orderForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const existingOrders = JSON.parse(localStorage.getItem("orders")) || [];
-    existingOrders.push(newOrder);
-    localStorage.setItem("orders", JSON.stringify(existingOrders));
+      const name = user.displayName || "Guest";
+      const phone = user.phoneNumber || "N/A";
+      const uid = user.uid;
 
-    localStorage.setItem("latestCustomerName", name);
-    localStorage.setItem("latestCustomerPhone", phone);
+      const quantities = document.querySelectorAll(".qty");
+      const items = [];
+      let total = 0;
 
-    alert("✅ Order submitted!");
-    window.location.href = "order-status.html";
+      quantities.forEach((qtyEl, i) => {
+        const qty = parseInt(qtyEl.textContent);
+        if (qty > 0) {
+          const item = menuItems[i];
+          items.push({ name: item.name, price: item.price, quantity: qty });
+          total += item.price * qty;
+        }
+      });
+
+      if (items.length === 0) {
+        alert("Please select at least one item.");
+        return;
+      }
+
+      try {
+        await addDoc(collection(db, "orders"), {
+          name,
+          phone,
+          userId: uid,
+          items,
+          total,
+          status: "Being Prepped",
+          timestamp: Timestamp.now(),
+          paid: false
+        });
+
+        alert("✅ Order submitted!");
+        window.location.href = "order-status.html";
+      } catch (error) {
+        console.error("Error submitting order:", error);
+        alert("There was an issue. Please try again.");
+      }
+    });
   });
 });

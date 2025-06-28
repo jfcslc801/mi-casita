@@ -1,37 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Mi Casita</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Welcome to Mi Casita</h1>
-  <form id="login-form">
-    <input type="text" id="login-name" placeholder="Enter your name" required />
-    <input type="text" id="login-phone" placeholder="Enter your phone number" required />
-    <button type="submit">Enter</button>
-  </form>
+  <h1>Login</h1>
 
-  <script>
-    document.getElementById("login-form").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const name = document.getElementById("login-name").value.trim();
-      const phone = document.getElementById("login-phone").value.trim();
+  <div id="login-section">
+    <input type="text" id="phone-number" placeholder="+1XXXXXXXXXX" />
+    <div id="recaptcha-container"></div>
+    <button id="send-code">Send Code</button>
 
-      localStorage.setItem("userName", name);
-      localStorage.setItem("userPhone", phone);
+    <div id="verify-section" style="display:none;">
+      <input type="text" id="verification-code" placeholder="Enter code" />
+      <button id="verify-code">Verify</button>
+    </div>
+  </div>
 
-      if (name.toLowerCase() === "grace" && phone === "8013474922") {
-        window.location.href = "kitchen.html";
-      } else {
-        window.location.href = "index.html";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      RecaptchaVerifier,
+      signInWithPhoneNumber
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBAGZ2tMj3AKjiLtOvaDHPW4XMYpdTR2VQ",
+      authDomain: "mi-casita-7ca95.firebaseapp.com",
+      projectId: "mi-casita-7ca95",
+      storageBucket: "mi-casita-7ca95.appspot.com",
+      messagingSenderId: "770244630610",
+      appId: "1:770244630610:web:66122916ee6de23efa278b",
+      measurementId: "G-T37B4SMQEZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'normal',
+      callback: (response) => {
+        document.getElementById("send-code").disabled = false;
       }
+    });
+
+    document.getElementById("send-code").addEventListener("click", () => {
+      const phoneNumber = document.getElementById("phone-number").value;
+      const appVerifier = window.recaptchaVerifier;
+
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          document.getElementById("verify-section").style.display = "block";
+        })
+        .catch((error) => {
+          alert("Error sending code: " + error.message);
+        });
+    });
+
+    document.getElementById("verify-code").addEventListener("click", () => {
+      const code = document.getElementById("verification-code").value;
+      window.confirmationResult.confirm(code)
+        .then((result) => {
+          alert("✅ Logged in!");
+          
+  const name = result.user.displayName || "User";
+  const phone = result.user.phoneNumber;
+
+  if (name.toLowerCase() === "grace" && phone === "+18013474922") {
+    window.location.href = "kitchen.html";
+  } else {
+    window.location.href = "index.html";
+  }
+  
+        })
+        .catch((error) => {
+          alert("Invalid code: " + error.message);
+        });
     });
   </script>
 
-<script type="module" src="firebase-config.js"></script>
+  <script type="module">
+    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBAGZ2tMj3AKjiLtOvaDHPW4XMYpdTR2VQ",
+      authDomain: "mi-casita-7ca95.firebaseapp.com",
+      projectId: "mi-casita-7ca95",
+      storageBucket: "mi-casita-7ca95.appspot.com",
+      messagingSenderId: "770244630610",
+      appId: "1:770244630610:web:66122916ee6de23efa278b",
+      measurementId: "G-T37B4SMQEZ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const logoutBtn = document.createElement("button");
+    logoutBtn.textContent = "Logout";
+    logoutBtn.style.marginTop = "20px";
+    logoutBtn.onclick = () => {
+      signOut(auth).then(() => {
+        alert("Logged out.");
+        window.location.reload();
+      });
+    };
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.body.appendChild(logoutBtn);
+      }
+    });
+  </script>
 </body>
 
 </html>
