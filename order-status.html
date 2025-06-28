@@ -5,18 +5,38 @@
   <title>Order Status</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="style.css" />
-   <link rel="stylesheet" href="order-status.css" />
+  <link rel="stylesheet" href="order-status.css" />
 </head>
 <body>
+  <!-- Admin Navigation -->
+  <div id="admin-nav" style="display: none;">
+    <h2>Admin Menu</h2>
+    <nav>
+      <a href="index.html">Order Menu</a> |
+      <a href="order-status.html">Order Status</a> |
+      <a href="kitchen.html">Kitchen View</a>
+    </nav>
+  </div>
+
+  <!-- Order Status Card -->
   <div class="card">
     <h2>Thank you for your order, <span id="customer-name">Customer</span>!</h2>
-    <p><strong>Order Total:</strong> $<span id="order-total">0.00</span></p>
+    <p><strong>Unpaid Total:</strong> $<span id="order-total">0.00</span></p>
     <div class="order-list status">
       Loading your orders...
     </div>
     <button onclick="window.location.href='index.html'">Place New Order</button>
   </div>
 
+  <!-- Scripts -->
   <script src="order-status.js"></script>
+  <script>
+    const userName = localStorage.getItem("userName");
+    const userPhone = localStorage.getItem("userPhone");
+
+    if (userName?.toLowerCase() === "grace" && userPhone === "8013474922") {
+      document.getElementById("admin-nav").style.display = "block";
+    }
+  </script>
 </body>
 </html>

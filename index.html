@@ -10,14 +10,8 @@
   <h1>Order Menu</h1>
 
   <form id="order-form">
-    <label for="customer-name">Name:</label>
-    <input type="text" id="customer-name" required placeholder="Enter your name" />
-
-    <label for="customer-phone">Phone:</label>
-    <input type="text" id="customer-phone" required placeholder="Enter your phone number" />
-
     <div class="menu-container" id="menu-container">
-      <!-- Menu items will be dynamically inserted by order.js -->
+      <!-- Menu items will be dynamically inserted -->
     </div>
 
     <div class="checkout">
@@ -26,7 +20,15 @@
     </div>
   </form>
 
-  <!-- Load script at bottom to ensure DOM is ready -->
+  <button onclick="logout()">Logout</button>
+
   <script src="order.js" defer></script>
+  <script>
+    function logout() {
+      localStorage.removeItem("userName");
+      localStorage.removeItem("userPhone");
+      window.location.href = "login.html";
+    }
+  </script>
 </body>
 </html>

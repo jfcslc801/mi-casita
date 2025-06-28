@@ -3,14 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kitchen View</title>
+  <title>Kitchen Orders</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Kitchen Order Queue</h1>
-  <div id="kitchen-orders">
-    <p>Loading orders...</p>
+  <div id="admin-nav" style="display: none;">
+    <h2>Admin Menu</h2>
+    <nav>
+      <a href="index.html">Order Menu</a> |
+      <a href="order-status.html">Order Status</a> |
+      <a href="kitchen.html">Kitchen View</a>
+    </nav>
   </div>
-  <script src="kitchen.js"></script>
+
+  <h1>Kitchen Orders</h1>
+  <div id="kitchen-orders"></div>
+
+  <script src="kitchen.js" defer></script>
+  <script>
+    const userName = localStorage.getItem("userName");
+    const userPhone = localStorage.getItem("userPhone");
+
+    if (userName?.toLowerCase() === "grace" && userPhone === "8013474922") {
+      document.getElementById("admin-nav").style.display = "block";
+    }
+  </script>
 </body>
 </html>
