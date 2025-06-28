@@ -1,9 +1,21 @@
-// order.js
 import { auth, db } from './firebase-config.js';
 import { collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Inject Admin Navigation (initially hidden)
+  const adminNavHTML = `
+    <div id="admin-nav" style="display: none;">
+      <h2>Admin Menu</h2>
+      <nav>
+        <a href="index.html">Order Menu</a> |
+        <a href="order-status.html">Order Status</a> |
+        <a href="kitchen.html">Kitchen View</a>
+      </nav>
+    </div>
+  `;
+  document.body.insertAdjacentHTML("afterbegin", adminNavHTML);
+
   const menuItems = [
     { name: "Gorditas de Queso", price: 5.0, image: "images/gorditas.jpg" },
     { name: "Gorditas de Desebrada", price: 5.0, image: "images/gordita.jpg" },
@@ -66,6 +78,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!user) {
       window.location.href = "login.html";
       return;
+    }
+
+    // Show admin nav if admin
+    const adminPhones = ["+18013474922", "+18012323880"];
+    if (adminPhones.includes(user.phoneNumber)) {
+      const adminNav = document.getElementById("admin-nav");
+      if (adminNav) adminNav.style.display = "block";
     }
 
     orderForm.addEventListener("submit", async (e) => {

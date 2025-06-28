@@ -204,3 +204,31 @@ button:hover {
     width: 80%;
   }
 }
+
+/* Admin Toolbar Styles */
+#admin-nav {
+  background: #222;
+  color: #fff;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+#admin-nav h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+#admin-nav nav {
+  margin-top: 8px;
+}
+
+#admin-nav nav a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+#admin-nav nav a:hover {
+  text-decoration: underline;
+}

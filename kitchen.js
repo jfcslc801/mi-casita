@@ -5,6 +5,31 @@ import {
   updateDoc,
   doc
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+import { auth } from './firebase-config.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+
+// Inject Admin Menu
+const adminNavHTML = `
+  <div id="admin-nav" style="display: none;">
+    <h2>Admin Menu</h2>
+    <nav>
+      <a href="index.html">Order Menu</a> |
+      <a href="order-status.html">Order Status</a> |
+      <a href="kitchen.html">Kitchen View</a>
+    </nav>
+  </div>
+`;
+document.body.insertAdjacentHTML("afterbegin", adminNavHTML);
+
+// Show menu only if admin
+onAuthStateChanged(auth, (user) => {
+  if (!user) return;
+  const adminPhones = ["+18013474922", "+18012323880"];
+  if (adminPhones.includes(user.phoneNumber)) {
+    const nav = document.getElementById("admin-nav");
+    if (nav) nav.style.display = "block";
+  }
+});
 
 const container = document.getElementById("kitchen-orders");
 
@@ -27,7 +52,7 @@ async function loadOrders() {
       }
     });
 
-    // Unpaid orders
+    // Unpaid Orders
     if (orders.length === 0) {
       container.innerHTML = "<p>No unpaid orders in queue.</p>";
     }
@@ -60,7 +85,7 @@ async function loadOrders() {
       container.appendChild(div);
     });
 
-    // Group unpaid completed orders
+    // Group Unpaid Completed
     const unpaidCompleted = completed.filter(o => !o.paid);
     const groupedUnpaid = {};
 
@@ -119,7 +144,7 @@ async function loadOrders() {
       container.appendChild(div);
     });
 
-    // Paid orders
+    // Paid Orders
     const paidCompleted = completed.filter(o => o.paid);
     const groupedPaid = {};
 
