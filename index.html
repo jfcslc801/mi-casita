@@ -7,6 +7,17 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Admin Navigation (hidden by default) -->
+  <div id="admin-nav" style="display: none; margin-bottom: 20px;">
+    <h2>Admin Menu</h2>
+    <nav>
+      <a href="index.html">Order Menu</a> |
+      <a href="order-status.html">Order Status</a> |
+      <a href="kitchen.html">Kitchen View</a>
+    </nav>
+    <hr />
+  </div>
+
   <h1>Order Menu</h1>
 
   <form id="order-form">
@@ -28,6 +39,14 @@
       localStorage.removeItem("userName");
       localStorage.removeItem("userPhone");
       window.location.href = "login.html";
+    }
+
+    // Show admin navigation if logged in as Grace
+    const storedName = localStorage.getItem("userName");
+    const storedPhone = localStorage.getItem("userPhone");
+
+    if (storedName?.toLowerCase() === "grace" && storedPhone === "8013474922") {
+      document.getElementById("admin-nav").style.display = "block";
     }
   </script>
 </body>
