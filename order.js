@@ -11,11 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
     { name: "Gorditas de Queso", price: 5.0, image: "images/gorditas.jpg" },
     { name: "Gorditas de Desebrada", price: 5.0, image: "images/gordita.jpg" },
     { name: "Menudo", price: 15.0, image: "images/menudo.jpg" },
-    { name: "Tamales Docena", price: 25.0, image: "images/tamales.jpg" },
-    { name: "Can Soda", price: 2.5, image: "images/soda.jpg" },
-    { name: "Bottle Soda", price: 2.5, image: "images/soda.jpg" },
-    { name: "Tortillas", price: 2.0, image: "images/tortillas.jpg" },
     { name: "Costilla con Tortillas", price: 15.0, image: "images/costilla.jpg" },
+    { name: "Tamales Docena", price: 25.0, image: "images/tamales.jpg" },
+    { name: "Tortillas", price: 2.0, image: "images/tortillas.jpg" },
+    { name: "Can Soda", price: 1.5, image: "images/can-soda.jpg" },
+    { name: "Bottle Soda", price: 2.5, image: "images/bottle-soda.jpg" },
   ];
 
   const menuContainer = document.getElementById("menu-container");
