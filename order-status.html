@@ -22,24 +22,10 @@
   <div class="card">
     <h2>Thank you for your order, <span id="customer-name">Customer</span>!</h2>
     <p><strong>Unpaid Total:</strong> $<span id="order-total">0.00</span></p>
-    <div class="order-list status">
-      Loading your orders...
-    </div>
+    <div id="orders-container" class="order-list status">Loading your orders...</div>
     <button onclick="window.location.href='index.html'">Place New Order</button>
   </div>
 
-  <!-- Scripts -->
-  <script src="order-status.js"></script>
-  <script>
-    const userName = localStorage.getItem("userName");
-    const userPhone = localStorage.getItem("userPhone");
-
-    if (userName?.toLowerCase() === "grace" && userPhone === "8013474922") {
-      document.getElementById("admin-nav").style.display = "block";
-    }
-  </script>
-
-<script type="module" src="firebase-config.js"></script>
+  <script type="module" src="order-status.js"></script>
 </body>
-
 </html>

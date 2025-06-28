@@ -1,84 +1,206 @@
+import { db } from './firebase-config.js';
 import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-  getFirestore,
   collection,
-  query,
-  orderBy,
-  onSnapshot,
+  getDocs,
   updateDoc,
   doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 
-import { app } from "./firebase-config.js";
-
-const db = getFirestore(app);
-const auth = getAuth(app);
 const container = document.getElementById("kitchen-orders");
 
-function renderOrders(snapshot) {
+async function loadOrders() {
   container.innerHTML = "";
 
-  const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const snapshot = await getDocs(collection(db, "orders"));
+    const orders = [];
+    const completed = [];
 
-  if (orders.length === 0) {
-    container.innerHTML = "<p>No orders in queue.</p>";
-    return;
-  }
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      data.id = docSnap.id;
 
-  orders.forEach((order, index) => {
-    const div = document.createElement("div");
-    div.className = "order-card";
-
-    const itemsHtml = `
-      <table>
-        <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
-        ${order.items.map(item => `
-          <tr>
-            <td>${item.name}</td>
-            <td>${item.quantity}</td>
-            <td>$${(item.price * item.quantity).toFixed(2)}</td>
-          </tr>`).join('')}
-      </table>
-    `;
-
-    div.innerHTML = `
-      <h3>Order #${index + 1}</h3>
-      <p><strong>Customer:</strong> ${order.name}</p>
-      <p><strong>Phone:</strong> ${order.phone}</p>
-      ${itemsHtml}
-      <p class="total">Total: $${order.total.toFixed(2)}</p>
-      <p>Status: ${order.status}</p>
-      ${order.status !== "Ready for Pickup" ? `<button data-id="${order.id}" class="mark-complete">Mark as Ready</button>` : ""}
-    `;
-
-    container.appendChild(div);
-  });
-
-  // Add listeners for mark-complete buttons
-  container.querySelectorAll(".mark-complete").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const orderId = btn.dataset.id;
-      const orderRef = doc(db, "orders", orderId);
-      await updateDoc(orderRef, {
-        status: "Ready for Pickup"
-      });
+      if (data.status === "Ready for Pickup" || data.paid) {
+        completed.push(data);
+      } else {
+        orders.push(data);
+      }
     });
-  });
+
+    // Unpaid orders
+    if (orders.length === 0) {
+      container.innerHTML = "<p>No unpaid orders in queue.</p>";
+    }
+
+    orders.forEach((order, index) => {
+      const div = document.createElement("div");
+      div.className = "order-card";
+
+      const itemsHtml = `
+        <table>
+          <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
+          ${order.items.map(item => `
+            <tr>
+              <td>${item.name}</td>
+              <td>${item.quantity}</td>
+              <td>$${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>`).join('')}
+        </table>
+      `;
+
+      div.innerHTML = `
+        <h3>Order</h3>
+        <p><strong>Customer:</strong> ${order.name}</p>
+        <p><strong>Phone:</strong> ${order.phone}</p>
+        ${itemsHtml}
+        <p class="total">Total: $${order.total.toFixed(2)}</p>
+        <button onclick="completeOrder('${order.id}')">Complete Order</button>
+      `;
+
+      container.appendChild(div);
+    });
+
+    // Group unpaid completed orders
+    const unpaidCompleted = completed.filter(o => !o.paid);
+    const groupedUnpaid = {};
+
+    unpaidCompleted.forEach(order => {
+      if (!groupedUnpaid[order.phone]) {
+        groupedUnpaid[order.phone] = {
+          phone: order.phone,
+          name: order.name,
+          items: [...order.items],
+          total: order.total,
+          ids: [order.id],
+          latestTimestamp: order.timestamp?.seconds || 0
+        };
+      } else {
+        groupedUnpaid[order.phone].items.push(...order.items);
+        groupedUnpaid[order.phone].total += order.total;
+        groupedUnpaid[order.phone].ids.push(order.id);
+        if ((order.timestamp?.seconds || 0) > groupedUnpaid[order.phone].latestTimestamp) {
+          groupedUnpaid[order.phone].latestTimestamp = order.timestamp?.seconds || 0;
+          groupedUnpaid[order.phone].name = order.name;
+        }
+      }
+    });
+
+    Object.values(groupedUnpaid).forEach(group => {
+      const div = document.createElement("div");
+      div.className = "order-card";
+
+      const itemMap = {};
+      group.items.forEach(item => {
+        if (!itemMap[item.name]) {
+          itemMap[item.name] = { quantity: 0, price: item.price };
+        }
+        itemMap[item.name].quantity += item.quantity;
+      });
+
+      const itemsHtml = `
+        <table>
+          <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
+          ${Object.entries(itemMap).map(([name, data]) => `
+            <tr>
+              <td>${name}</td>
+              <td>${data.quantity}</td>
+              <td>$${(data.quantity * data.price).toFixed(2)}</td>
+            </tr>`).join('')}
+        </table>
+      `;
+
+      div.innerHTML = `
+        <h3>${group.name} (${group.phone})</h3>
+        ${itemsHtml}
+        <p class="total">Total: $${group.total.toFixed(2)}</p>
+        <button onclick='markGroupAsPaid(${JSON.stringify(group.ids)})'>Mark as Paid</button>
+      `;
+
+      container.appendChild(div);
+    });
+
+    // Paid orders
+    const paidCompleted = completed.filter(o => o.paid);
+    const groupedPaid = {};
+
+    paidCompleted.forEach(order => {
+      const key = `${order.phone}-${order.paidAt?.seconds || order.timestamp?.seconds}`;
+      if (!groupedPaid[key]) {
+        groupedPaid[key] = {
+          name: order.name,
+          phone: order.phone,
+          items: [...order.items],
+          total: order.total,
+          paidAt: order.paidAt?.seconds || order.timestamp?.seconds || 0
+        };
+      } else {
+        groupedPaid[key].items.push(...order.items);
+        groupedPaid[key].total += order.total;
+      }
+    });
+
+    Object.values(groupedPaid)
+      .sort((a, b) => b.paidAt - a.paidAt)
+      .forEach(group => {
+        const div = document.createElement("div");
+        div.className = "order-card paid";
+
+        const itemMap = {};
+        group.items.forEach(item => {
+          if (!itemMap[item.name]) {
+            itemMap[item.name] = { quantity: 0, price: item.price };
+          }
+          itemMap[item.name].quantity += item.quantity;
+        });
+
+        const itemsHtml = `
+          <table>
+            <tr><th>Item</th><th>Qty</th><th>Subtotal</th></tr>
+            ${Object.entries(itemMap).map(([name, data]) => `
+              <tr>
+                <td>${name}</td>
+                <td>${data.quantity}</td>
+                <td>$${(data.quantity * data.price).toFixed(2)}</td>
+              </tr>`).join('')}
+          </table>
+        `;
+
+        div.innerHTML = `
+          <h3>${group.name} (${group.phone})</h3>
+          ${itemsHtml}
+          <p class="total">Total: $${group.total.toFixed(2)}</p>
+          <p><strong>✅ Paid</strong></p>
+        `;
+
+        container.appendChild(div);
+      });
+
+  } catch (err) {
+    container.innerHTML = `<p>Error loading orders: ${err.message}</p>`;
+    console.error("Error loading kitchen orders:", err);
+  }
 }
 
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
-
-  onSnapshot(q, (snapshot) => {
-    renderOrders(snapshot);
+window.completeOrder = async function (id) {
+  const ref = doc(db, "orders", id);
+  await updateDoc(ref, {
+    status: "Ready for Pickup",
+    timestamp: new Date()
   });
-});
+  loadOrders();
+};
+
+window.markGroupAsPaid = async function (ids) {
+  const now = new Date();
+  for (const id of ids) {
+    const ref = doc(db, "orders", id);
+    await updateDoc(ref, {
+      paid: true,
+      paidAt: now
+    });
+  }
+  loadOrders();
+};
+
+loadOrders();
+setInterval(loadOrders, 5000);

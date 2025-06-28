@@ -1,50 +1,85 @@
-body { font-family: sans-serif; text-align: center; padding: 30px; }
-.card { background: #f9f9f9; padding: 20px; border-radius: 10px; max-width: 600px; margin: 20px auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-h2 { margin-bottom: 10px; }
-.order-list { margin-top: 30px; }
-.order-block {
-  background: #f1f1f1;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+body {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f8f8;
+  margin: 0;
+}
+
+h1, h2 {
+  color: #333;
+}
+
+#admin-nav {
+  background: #222;
+  color: #fff;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+#admin-nav nav a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+#admin-nav nav a:hover {
+  text-decoration: underline;
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.order-list {
+  margin-top: 20px;
   text-align: left;
 }
-.highlight {
-  background: #e6ffe6;
-  border: 2px solid #28a745;
+
+.order-block {
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  text-align: left;
+  border-left: 6px solid #999;
 }
-.prepping {
-  background-color: #fff8e1;
-  border: 2px solid #ffc107;
+
+.order-block.highlight {
+  border-left-color: #2ecc71;
+  background-color: #eafaf1;
 }
-.order-block h3 {
-  margin-top: 0;
-  font-size: 18px;
+
+.order-block.prepping {
+  border-left-color: #f39c12;
+  background-color: #fffaf0;
 }
+
+.order-block.paid {
+  border-left-color: #3498db;
+  background-color: #ecf6fd;
+}
+
 .status-text {
   font-weight: bold;
+  margin-top: 10px;
 }
+
 .progress-container {
-  margin-top: 15px;
-  background: #eee;
-  border-radius: 20px;
+  height: 8px;
+  background-color: #ddd;
+  border-radius: 4px;
+  margin-top: 10px;
   overflow: hidden;
-  height: 16px;
 }
+
 .progress-bar {
-  height: 100%;
-  width: 0;
-  background-color: #28a745;
-  transition: width 0.5s ease;
+  height: 8px;
+  background-color: #2ecc71;
+  transition: width 0.4s ease;
 }
-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
-  background: #007bff;
-  color: white;
-  cursor: pointer;
-}
-button:hover { background: #0056b3; }

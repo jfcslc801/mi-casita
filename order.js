@@ -1,19 +1,7 @@
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import { app } from "./firebase-config.js";
-
-const db = getFirestore(app);
-const auth = getAuth(app);
+// order.js
+import { auth, db } from './firebase-config.js';
+import { collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const menuItems = [
@@ -24,14 +12,15 @@ document.addEventListener("DOMContentLoaded", () => {
     { name: "Tamales Docena", price: 25.0, image: "images/tamales.jpg" },
     { name: "Tortillas", price: 2.0, image: "images/tortillas.jpg" },
     { name: "Can Soda", price: 1.5, image: "images/can-soda.jpg" },
-    { name: "Bottle Soda", price: 2.5, image: "images/bottle-soda.jpg" },
+    { name: "Bottle Soda", price: 2.5, image: "images/bottle-soda.jpg" }
   ];
 
   const menuContainer = document.getElementById("menu-container");
   const totalCostEl = document.getElementById("total-cost");
   const orderForm = document.getElementById("order-form");
 
-  menuItems.forEach((item, index) => {
+  // Render menu items
+  menuItems.forEach((item) => {
     const itemDiv = document.createElement("div");
     itemDiv.className = "menu-item";
     itemDiv.innerHTML = `
@@ -82,10 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const name = user.displayName || "Guest";
-      const phone = user.phoneNumber || "N/A";
-      const uid = user.uid;
-
       const quantities = document.querySelectorAll(".qty");
       const items = [];
       let total = 0;
@@ -106,9 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
         await addDoc(collection(db, "orders"), {
-          name,
-          phone,
-          userId: uid,
+          phone: user.phoneNumber,
+          name: user.displayName || "Customer",
           items,
           total,
           status: "Being Prepped",
@@ -120,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "order-status.html";
       } catch (error) {
         console.error("Error submitting order:", error);
-        alert("There was an issue. Please try again.");
+        alert("❌ Failed to submit order. Try again.");
       }
     });
   });

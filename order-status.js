@@ -1,64 +1,66 @@
-import {
-  getAuth,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { auth, db } from './firebase-config.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+import { collection, query, where, orderBy, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+document.addEventListener("DOMContentLoaded", () => {
+  const nameEl = document.getElementById("customer-name");
+  const totalEl = document.getElementById("order-total");
+  const container = document.getElementById("orders-container");
+  const adminNav = document.getElementById("admin-nav");
 
-import { app } from "./firebase-config.js";
-
-const db = getFirestore(app);
-const auth = getAuth(app);
-const orderList = document.getElementById("order-status");
-
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const userId = user.uid;
-  const ordersRef = collection(db, "orders");
-  const q = query(ordersRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
-
-  onSnapshot(q, (snapshot) => {
-    orderList.innerHTML = "";
-    if (snapshot.empty) {
-      orderList.innerHTML = "<p>No orders found.</p>";
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html";
       return;
     }
 
-    snapshot.forEach((doc) => {
-      const order = doc.data();
-      const div = document.createElement("div");
-      div.className = "order-card";
+    const isAdmin = ["+18013474922", "+18012323880"].includes(user.phoneNumber);
+    if (isAdmin) adminNav.style.display = "block";
 
-      const itemsHtml = order.items
-        .map(
-          (item) =>
-            `<li>${item.quantity} x ${item.name} - $${(
-              item.quantity * item.price
-            ).toFixed(2)}</li>`
-        )
-        .join("");
+    try {
+      nameEl.textContent = user.displayName || "Customer";
 
-      div.innerHTML = `
-        <h3>Status: ${order.status}</h3>
-        <ul>${itemsHtml}</ul>
-        <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
-        <p><em>Time: ${new Date(
-          order.timestamp.seconds * 1000
-        ).toLocaleString()}</em></p>
-      `;
+      const ordersRef = collection(db, "orders");
+      const q = query(
+        ordersRef,
+        where("phone", "==", user.phoneNumber),
+        orderBy("timestamp", "desc")
+      );
+      const snapshot = await getDocs(q);
 
-      orderList.appendChild(div);
-    });
+      if (snapshot.empty) {
+        container.innerHTML = "<p>No orders found.</p>";
+        return;
+      }
+
+      let unpaidTotal = 0;
+      let output = "";
+
+      snapshot.forEach(doc => {
+        const order = doc.data();
+        const itemList = order.items.map(item =>
+          `${item.quantity} × ${item.name} ($${item.price.toFixed(2)})`
+        ).join("<br>");
+
+        if (!order.paid) unpaidTotal += order.total;
+
+        output += `
+          <div class="order-block">
+            <p><strong>Items:</strong><br>${itemList}</p>
+            <p><strong>Total:</strong> $${order.total.toFixed(2)}</p>
+            <p><strong>Status:</strong> ${order.status || "Being Prepped"}</p>
+            <p><strong>Paid:</strong> ${order.paid ? "✅" : "❌"}</p>
+            <hr/>
+          </div>
+        `;
+      });
+
+      totalEl.textContent = unpaidTotal.toFixed(2);
+      container.innerHTML = output;
+
+    } catch (error) {
+      console.error("Error loading orders:", error);
+      container.innerHTML = "<p>Error loading your orders.</p>";
+    }
   });
 });
