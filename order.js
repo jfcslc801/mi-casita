@@ -1,24 +1,44 @@
 document.addEventListener("DOMContentLoaded", () => {
   const menuItems = [
     {
-      name: "Tamales",
-      price: 3.5,
-      image: "images/tamales.jpg",
-    },
-    {
-      name: "Gorditas",
+      name: "Gorditas de Queso",
       price: 5.0,
       image: "images/gorditas.jpg",
     },
     {
-      name: "Gordita",
-      price: 4.5,
+      name: "Gorditas de Desebrada",
+      price: 5.0,
       image: "images/gordita.jpg",
     },
     {
       name: "Menudo",
-      price: 8.0,
+      price: 15.0,
       image: "images/menudo.jpg",
+    },
+    {
+      name: "Tamales Docena",
+      price: 25.0,
+      image: "images/tamales.jpg",
+    },
+    {
+      name: "Can Soda",
+      price: 1.50,
+      image: "images/can-soda.jpg", // make sure to include this image
+    },
+    {
+      name: "Bottle Soda",
+      price: 2.50,
+      image: "images/bottle-soda.jpg", // make sure to include this image
+    },
+    {
+      name: "Tortillas",
+      price: 2.0,
+      image: "images/tortillas.jpg",
+    },
+    {
+      name: "Costilla con Tortillas",
+      price: 15.0,
+      image: "images/costilla.jpg",
     },
   ];
 
@@ -124,5 +144,3 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "order-status.html";
   });
 });
-// This code handles the order submission and menu display for a food ordering system.
-// It allows users to select items, adjust quantities, and submit their orders.
