@@ -7,6 +7,17 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+  <!-- Admin Navigation -->
+  <div id="admin-nav" style="display: none;">
+    <h2>Admin Menu</h2>
+    <nav>
+      <a href="index.html">Order Menu</a> |
+      <a href="order-status.html">Order Status</a> |
+      <a href="kitchen.html">Kitchen View</a>
+    </nav>
+  </div>
+
   <!-- Admin Navigation (hidden by default) -->
   <div id="admin-nav" style="display: none; margin-bottom: 20px;">
     <h2>Admin Menu</h2>
@@ -51,6 +62,18 @@
   </script>
 
 <script type="module" src="firebase-config.js"></script>
+
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.phoneNumber === '+18013474922') {
+        document.getElementById("admin-nav").style.display = "block";
+      }
+    });
+  </script>
+
 </body>
 
 </html>
