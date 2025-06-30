@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { collection, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const menuItems = [
@@ -67,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Ask for display name if not set
     let customerName = user.displayName;
     if (!customerName || customerName === "Customer") {
       customerName = prompt("Please enter your name for the order:");
@@ -75,41 +74,45 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Name is required to place an order.");
         return;
       }
+      await updateProfile(user, { displayName: customerName });
     }
 
     orderForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const quantities = document.querySelectorAll(".qty");
-      const items = [];
-      let total = 0;
+      const orderItems = [];
+      let totalCost = 0;
 
       quantities.forEach((qtyEl, i) => {
         const qty = parseInt(qtyEl.textContent);
         if (qty > 0) {
-          const item = menuItems[i];
-          items.push({ name: item.name, price: item.price, quantity: qty });
-          total += item.price * qty;
+          orderItems.push({
+            name: menuItems[i].name,
+            price: menuItems[i].price,
+            quantity: qty,
+            subtotal: menuItems[i].price * qty,
+          });
+          totalCost += menuItems[i].price * qty;
         }
       });
 
-      if (items.length === 0) {
-        alert("Please select at least one item.");
+      if (orderItems.length === 0) {
+        alert("Please add items to your order.");
         return;
       }
 
       try {
         await addDoc(collection(db, "orders"), {
-          phone: user.phoneNumber,
           name: customerName,
-          items,
-          total,
-          status: "Being Prepped",
+          phone: user.phoneNumber,
+          items: orderItems,
+          total: totalCost,
+          paid: false,
           timestamp: Timestamp.now(),
-          paid: false
         });
 
-        alert("✅ Order submitted!");
+        alert("Order submitted successfully!");
         window.location.href = "order-status.html";
       } catch (error) {
         console.error("Error submitting order:", error);
