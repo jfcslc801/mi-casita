@@ -21,18 +21,9 @@ const adminNavHTML = `
 `;
 document.body.insertAdjacentHTML("afterbegin", adminNavHTML);
 
-// Show menu only if admin
-onAuthStateChanged(auth, (user) => {
-  if (!user) return;
-  const adminPhones = ["+18013474922", "+18012323880"];
-  if (adminPhones.includes(user.phoneNumber)) {
-    const nav = document.getElementById("admin-nav");
-    if (nav) nav.style.display = "block";
-  }
-});
-
 const container = document.getElementById("kitchen-orders");
 
+// Load Orders Function
 async function loadOrders() {
   container.innerHTML = "";
 
@@ -57,7 +48,7 @@ async function loadOrders() {
       container.innerHTML = "<p>No unpaid orders in queue.</p>";
     }
 
-    orders.forEach((order, index) => {
+    orders.forEach(order => {
       const div = document.createElement("div");
       div.className = "order-card";
 
@@ -206,6 +197,7 @@ async function loadOrders() {
   }
 }
 
+// ✅ Make functions global for inline button handlers
 window.completeOrder = async function (id) {
   const ref = doc(db, "orders", id);
   await updateDoc(ref, {
@@ -227,5 +219,22 @@ window.markGroupAsPaid = async function (ids) {
   loadOrders();
 };
 
-loadOrders();
-setInterval(loadOrders, 5000);
+// ✅ Only run kitchen view if admin is signed in
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    container.innerHTML = `<p>Access denied. Not signed in.</p>`;
+    return;
+  }
+
+  const adminPhones = ["+18013474922", "+18012323880"];
+  if (!adminPhones.includes(user.phoneNumber)) {
+    container.innerHTML = `<p>Access denied. Admin only.</p>`;
+    return;
+  }
+
+  const nav = document.getElementById("admin-nav");
+  if (nav) nav.style.display = "block";
+
+  loadOrders();
+  setInterval(loadOrders, 5000);
+});
