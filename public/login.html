@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Mi Casita</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="login-container">
+    <h1>Welcome to Mi Casita</h1>
+
+    <form id="login-form">
+      <input type="text" id="login-name" placeholder="Enter your name" required />
+      <input type="tel" id="login-phone" placeholder="Enter your 10-digit phone number" required />
+      <button type="submit">Send Code</button>
+    </form>
+
+    <div id="code-section" style="display: none;">
+      <label for="code">Enter the 6-digit code:</label>
+      <input type="text" id="code" maxlength="6" required />
+      <button id="verify-code">Verify Code</button>
+    </div>
+  </div>
+
+  <div id="recaptcha-container" style="display: none;"></div>
+
+  <script type="module" src="login.js"></script>
+</body>
+</html>
